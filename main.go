@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 	"time"
-
+	"net/http"
 	"github.com/TechBowl-japan/go-stations/db"
 	"github.com/TechBowl-japan/go-stations/handler/router"
 )
@@ -13,6 +13,8 @@ func main() {
 	err := realMain()
 	if err != nil {
 		log.Fatalln("main: failed to exit successfully, err =", err)
+	} else {
+		log.Println("main: exited successfully")
 	}
 }
 
@@ -50,7 +52,7 @@ func realMain() error {
 	// NOTE: 新しいエンドポイントの登録はrouter.NewRouterの内部で行うようにする
 	mux := router.NewRouter(todoDB)
 
-	// TODO: サーバーをlistenする
+	log.Fatal(http.ListenAndServe(port, mux))
 
 	return nil
 }
