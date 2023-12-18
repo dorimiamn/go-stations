@@ -99,5 +99,23 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		var res = model.UpdateTODOResponse{ TODO: *todo }
 		json.NewEncoder(w).Encode(&res)
+	case http.MethodDelete:
+		var req model.DeleteTODORequest
+		json.NewDecoder(r.Body).Decode(&req)
+		if req.IDs == nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		ids := make([]int64, 0)
+		for _, id := range req.IDs {
+			ids = append(ids, int64(id))
+		}
+		err := h.svc.DeleteTODO(r.Context(), ids)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		var res = model.DeleteTODOResponse{ IDs: req.IDs }
+		json.NewEncoder(w).Encode(&res)
 	}
 }
