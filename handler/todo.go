@@ -3,7 +3,9 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/TechBowl-japan/go-stations/model"
 	"github.com/TechBowl-japan/go-stations/service"
@@ -48,6 +50,31 @@ func (h *TODOHandler) Delete(ctx context.Context, req *model.DeleteTODORequest) 
 // ServeHTTP implements http.Handler interface.
 func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+	case http.MethodGet:
+		v := r.URL.Query()
+		if v == nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		id, _ := strconv.Atoi(v.Get("prev_id"))
+		size, _ := strconv.Atoi(v.Get("size"))
+
+		todos, err := h.svc.ReadTODO(r.Context(), int64(id), int64(size))
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		convertedTodos := make([]model.TODO,0)
+
+		for _, todo := range todos {
+			convertedTodos = append(convertedTodos, *todo)
+		}
+		fmt.Println(convertedTodos)
+		var res = model.ReadTODOResponse{TODOs: convertedTodos}
+		json.NewEncoder(w).Encode(&res)
+
 	case http.MethodPost:
 		var req model.CreateTODORequest
 		json.NewDecoder(r.Body).Decode(&req)
@@ -57,6 +84,20 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		todo, _ := h.svc.CreateTODO(r.Context(), req.Subject, req.Description)
 		var res = model.CreateTODOResponse{ TODO: *todo }
+		json.NewEncoder(w).Encode(&res)
+	case http.MethodPut:
+		var req model.UpdateTODORequest
+		json.NewDecoder(r.Body).Decode(&req)
+		if req.Subject == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		todo, err := h.svc.UpdateTODO(r.Context(), req.ID, req.Subject, req.Description)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		var res = model.UpdateTODOResponse{ TODO: *todo }
 		json.NewEncoder(w).Encode(&res)
 	}
 }
