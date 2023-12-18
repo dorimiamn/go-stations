@@ -102,7 +102,7 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case http.MethodDelete:
 		var req model.DeleteTODORequest
 		json.NewDecoder(r.Body).Decode(&req)
-		if req.IDs == nil {
+		if len(req.IDs) == 0 {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
