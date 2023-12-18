@@ -155,7 +155,7 @@ func (s *TODOService) DeleteTODO(ctx context.Context, ids []int64) error {
 		return nil
 	}
 
-	queryStr := strings.Repeat(",?", len(ids))
+	queryStr := strings.Repeat(",?", len(ids)-1)
 	delete := fmt.Sprintf(deleteFmt, queryStr)
 
 	fmt.Println(len(ids),delete)
