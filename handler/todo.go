@@ -112,7 +112,7 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		err := h.svc.DeleteTODO(r.Context(), ids)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 		var res = model.DeleteTODOResponse{ IDs: req.IDs }
