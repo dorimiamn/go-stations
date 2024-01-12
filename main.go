@@ -2,11 +2,14 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 	"time"
-	"net/http"
+
 	"github.com/TechBowl-japan/go-stations/db"
 	"github.com/TechBowl-japan/go-stations/handler/router"
+	"github.com/TechBowl-japan/go-stations/handler/middleware"
+	"github.com/justinas/alice"
 )
 
 func main() {
@@ -52,7 +55,11 @@ func realMain() error {
 	// NOTE: 新しいエンドポイントの登録はrouter.NewRouterの内部で行うようにする
 	mux := router.NewRouter(todoDB)
 
-	log.Fatal(http.ListenAndServe(port, mux))
+	// middleware chine の作成
+
+	chain :=alice.New(middleware.Recovery,middleware.GetAgent,middleware.Logger)
+
+	log.Fatal(http.ListenAndServe(port, chain.Then(mux)))
 
 	return nil
 }
