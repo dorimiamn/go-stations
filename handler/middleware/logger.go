@@ -19,11 +19,11 @@ func Logger(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		accessedDate := time.Now()
 		h.ServeHTTP(w, r)
-		executionTime := time.Since(accessedDate)
-		useragent := r.Context().Value("user_agent").(useragent.UserAgent)
+		executionTime := time.Since(accessedDate).Milliseconds()
+		useragent := useragent.Parse(r.UserAgent())
 		log := Log{
 			Timestamp: accessedDate,
-			Latency: int64(executionTime),
+			Latency: executionTime,
 			Path: r.URL.Path,
 			OS: useragent.OS,
 		}
