@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
@@ -65,21 +64,15 @@ func realMain() error {
 		Handler: mux,
 	}
 
-	wg := &sync.WaitGroup{}
-
-	wg.Add(1)
-
 	go func() {
-		defer wg.Done()
-		<-ctx.Done()
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		server.Shutdown(ctx)
+		log.Println(server.ListenAndServe())
 	}()
+	
+	<-ctx.Done()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	log.Println(server.ListenAndServe())
-
-	wg.Wait()
+	server.Shutdown(ctx)
 
 	return nil
 }
