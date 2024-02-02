@@ -1,4 +1,4 @@
-package contextValue
+package ctxvalue
 
 import (
 	"context"
@@ -10,9 +10,9 @@ type contextKey struct {}
 
 var userAgentKey = contextKey{}
 
-func UserAgent(ctx context.Context) (*useragent.UserAgent, bool) {
-	useragent, ok := ctx.Value(userAgentKey).(*useragent.UserAgent)
-	return useragent, ok
+func GetUserAgent(ctx context.Context) (*useragent.UserAgent, bool) {
+	userAgent, ok := ctx.Value(userAgentKey).(*useragent.UserAgent)
+	return userAgent, ok
 }
 
 func SetUserAgent(ctx context.Context, u *useragent.UserAgent) context.Context {

@@ -1,15 +1,17 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/TechBowl-japan/go-stations/db"
 	"github.com/TechBowl-japan/go-stations/handler/router"
-	"github.com/TechBowl-japan/go-stations/handler/middleware"
-	"github.com/justinas/alice"
 )
 
 func main() {
@@ -55,11 +57,29 @@ func realMain() error {
 	// NOTE: 新しいエンドポイントの登録はrouter.NewRouterの内部で行うようにする
 	mux := router.NewRouter(todoDB)
 
-	// middleware chine の作成
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt, os.Kill)
+	defer stop()
 
-	chain :=alice.New(middleware.Recovery,middleware.GetAgent,middleware.Logger)
+	server := &http.Server{
+		Addr:    port,
+		Handler: mux,
+	}
 
-	log.Fatal(http.ListenAndServe(port, chain.Then(mux)))
+	wg := &sync.WaitGroup{}
+
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		<-ctx.Done()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		server.Shutdown(ctx)
+	}()
+
+	log.Println(server.ListenAndServe())
+
+	wg.Wait()
 
 	return nil
 }

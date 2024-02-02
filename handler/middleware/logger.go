@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 	"encoding/json"
-	"github.com/mileusna/useragent"
+	"github.com/TechBowl-japan/go-stations/handler/ctxvalue"
 )
 
 type Log struct{
@@ -20,12 +20,16 @@ func Logger(h http.Handler) http.Handler {
 		accessedDate := time.Now()
 		h.ServeHTTP(w, r)
 		executionTime := time.Since(accessedDate).Milliseconds()
-		useragent := useragent.Parse(r.UserAgent())
+		userAgent, ok := ctxvalue.GetUserAgent(r.Context())
+		if !ok {
+			fmt.Println("useragent not found")
+			return
+		}
 		log := Log{
 			Timestamp: accessedDate,
 			Latency: executionTime,
 			Path: r.URL.Path,
-			OS: useragent.OS,
+			OS: userAgent.OS,
 		}
 		jsonLog, _ := json.Marshal(log)
 		fmt.Println(string(jsonLog))
